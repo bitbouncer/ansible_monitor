@@ -61,8 +61,6 @@
     pull: yes
     command: dd_promstore_exporter --src_topic={{ tsdb_metrics_topic }} --start_offset=OFFSET_END
     env: 
-      KSPP_SCHEMA_REGISTRY_URL: "{{ schema_registry_http_connect }}"
-      KSPP_KAFKA_BROKER_URL:    "{{ kafka_plaintext_connect }}"
       APP_REALM:                "MON"
       DST_URI:                  "http://127.0.0.1:8086/api/v1/prom/write"
       DB_DATABASE:              "{{ influxdb_databasename }}"
