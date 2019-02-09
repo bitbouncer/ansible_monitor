@@ -1,0 +1,43 @@
+- hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Install python for Ansible
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+
+- hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Install aptitude for Ansible
+      raw: test -e /usr/bin/aptitude || (apt -y update && apt install -y aptitude)
+
+- hosts: all
+  gather_facts: true
+
+- hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    - apt_key: url=https://download.docker.com/linux/ubuntu/gpg state=present
+    - apt_key: url=https://packages.cloud.google.com/apt/doc/apt-key.gpg state=present
+    - apt_key: keyserver=hkp://keyserver.ubuntu.com:80 id=382E94DE state=present
+    - apt_repository: repo={{ item }} state=present
+      with_items:
+        - deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+    - apt: update_cache=yes upgrade=yes autoremove=yes
+    - package: name={{ item }} state=latest
+      with_items:
+       - ntp
+       - apt-transport-https
+       - ca-certificates
+       - curl
+       - software-properties-common
+    - package: name={{ item }} state=latest
+      with_items:
+       - docker-ce
+       - python3-pip
+       - python-pip
+    - pip: name=docker
+    - user: name={{ ansible_user }} shell=/bin/bash groups=docker append=yes
+
