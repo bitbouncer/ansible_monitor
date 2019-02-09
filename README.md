@@ -14,8 +14,9 @@ cd ansible_monitor
 
 ```
 ansible-playbook -i "localhost," -c local --extra-vars "API_KEY=YOUR_API_KEY" initial-ubuntu18.yml --ask-sudo-pass 
-```
 
-sudo usermod -aG docker $USER
+ansible-playbook -i "localhost," -c local monitor.yml --ask-sudo-pass
+
+```
 
 

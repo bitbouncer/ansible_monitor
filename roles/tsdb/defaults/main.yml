@@ -1,0 +1,19 @@
+influxdb_docker_image:     influxdb:1.7.3-alpine
+grafana_docker_image:      grafana/grafana:5.4.3
+prometheus_docker_image:   prom/prometheus
+dd_monitor_docker_image:   bitbouncer/monitor:latest
+
+influxdb_admin_user:       admin
+influxdb_admin_password:   supersecret
+influxdb_user:             monitor
+influxdb_user_password:    monitor
+influxdb_databasename:     prometheus
+
+
+grafana_root_url:          http://{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:3000
+grafana_admin_password:    doorling
+
+
+
+
+
