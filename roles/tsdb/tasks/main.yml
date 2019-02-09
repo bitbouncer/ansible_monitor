@@ -59,7 +59,7 @@
     restart_policy: always
     state: started
     pull: yes
-    command: dd_promstore_exporter --src_topic={{ tsdb_metrics_topic }} --start_offset=OFFSET_END
+    command: dd_promstore_exporter --src_topic={{ tsdb_metrics_topic }} --start_offset=OFFSET_BEGINNING
     env: 
       APP_REALM:                "MON"
       DST_URI:                  "http://127.0.0.1:8086/api/v1/prom/write"
