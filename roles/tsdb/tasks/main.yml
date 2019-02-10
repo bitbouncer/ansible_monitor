@@ -147,9 +147,15 @@
   tags:
      - deploy
 
+- name: "Check if Grafana is accessible."
+  uri:
+    url: http://127.0.0.1:3000
+    method: GET
+    status_code: 200
+
 - name: Create influxdb datasource
   grafana_datasource:
-    name: "influxdb2"
+    name: "influxdb"
     grafana_url: "http://localhost:3000"
     grafana_user: "admin"
     grafana_password: "{{ grafana_admin_password }}"
@@ -160,5 +166,13 @@
     time_interval: ">10s"
     
 
-#     GF_SERVER_ROOT_URL:          "{{ grafana_root_url }}"
-#    network_mode: host
+- name: Create prometheus datasource
+  grafana_datasource:
+    name: "prometheus"
+    grafana_url: "http://localhost:3000"
+    grafana_user: "admin"
+    grafana_password: "{{ grafana_admin_password }}"
+    org_id: "1"
+    ds_type: "prometheus"
+    url: "http://localhost:9090"
+
