@@ -176,3 +176,16 @@
     ds_type: "prometheus"
     url: "http://localhost:9090"
 
+
+- name: Import Grafana dashboard foo
+  grafana_dashboard:
+    grafana_url: http://grafana.company.com
+    grafana_user: "admin"
+    grafana_password: "{{ grafana_admin_password }}"
+    state: present
+    message: Updated by ansible
+    overwrite: yes
+    path: dashboards/datadog.json
+
+
+
