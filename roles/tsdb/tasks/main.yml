@@ -147,5 +147,18 @@
   tags:
      - deploy
 
+- name: Create influxdb datasource
+  grafana_datasource:
+    name: "influxdb2"
+    grafana_url: "http://localhost:3000"
+    grafana_user: "admin"
+    grafana_password: "{{ grafana_admin_password }}"
+    org_id: "1"
+    ds_type: "influxdb"
+    url: "http://localhost:8086"
+    database: {{ influxdb_databasename }}
+    time_interval: ">10s"
+    
+
 #     GF_SERVER_ROOT_URL:          "{{ grafana_root_url }}"
 #    network_mode: host
