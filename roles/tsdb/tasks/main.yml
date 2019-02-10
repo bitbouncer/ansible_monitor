@@ -49,7 +49,13 @@
   tags:
      - deploy
 
-- name: start kafka 2 prometheus import container
+- name: create offset storage dir
+  file: path=/var/lib/tsdb state=directory mode=0755 owner=1000 group=1000
+  become: true
+  tags:
+     - deploy
+
+- name: start prometheus import container
   docker_container:
     name: tsdb_metrics_import
     image: "{{ dd_monitor_docker_image }}"
@@ -59,13 +65,17 @@
     restart_policy: always
     state: started
     pull: yes
-    command: dd_promstore_exporter --src_topic={{ tsdb_metrics_topic }} --start_offset=OFFSET_BEGINNING
+    command: dd_promstore_exporter --src_topic={{ tsdb_metrics_topic }} --offset_storage=/var/lib/tsdb/import-{{ tsdb_metrics_topic }}.offset
     env: 
       APP_REALM:                "MON"
+      SRC_URI:                  "lb.bitbouncer.com:50051"
+      API_KEY:                  "{{ API_KEY }}"
       DST_URI:                  "http://127.0.0.1:8086/api/v1/prom/write"
       DB_DATABASE:              "{{ influxdb_databasename }}"
       DB_USER:                  "{{ influxdb_user }}"
       DB_PASSWORD:              "{{ influxdb_user_password }}"
+    volumes: 
+      - /var/lib/tsdb:/var/lib/tsdb:rw
   tags:
      - deploy
 
