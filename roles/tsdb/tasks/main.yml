@@ -156,7 +156,7 @@
     org_id: "1"
     ds_type: "influxdb"
     url: "http://localhost:8086"
-    database: {{ influxdb_databasename }}
+    database: "{{ influxdb_databasename }}"
     time_interval: ">10s"
     
 
