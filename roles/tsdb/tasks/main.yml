@@ -153,6 +153,11 @@
     method: GET
     status_code: 200
 
+- name: install plugins
+  shell: docker exec tsdb_grafana grafana-cli plugins install vonage-status-panel {{ item }}
+  with items:
+   - vonage-status-panel
+
 - name: Create influxdb datasource
   grafana_datasource:
     name: "influxdb"
@@ -177,15 +182,15 @@
     url: "http://localhost:9090"
 
 
-- name: Import Grafana dashboard foo
-  grafana_dashboard:
-    grafana_url: http://grafana.company.com
-    grafana_user: "admin"
-    grafana_password: "{{ grafana_admin_password }}"
-    state: present
-    message: Updated by ansible
-    overwrite: yes
-    path: dashboards/datadog.json
+#- name: Import Grafana dashboard foo
+#  grafana_dashboard:
+#    grafana_url: http://localhost:3000
+#    grafana_user: "admin"
+#    grafana_password: "{{ grafana_admin_password }}"
+#    state: present
+#    message: Updated by ansible
+#    overwrite: yes
+#    path: dashboards/datadog.json
 
 
 
