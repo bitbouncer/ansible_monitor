@@ -58,14 +58,14 @@
 - name: start prometheus import container
   docker_container:
     name: tsdb_metrics_import
-    image: "{{ dd_monitor_docker_image }}"
+    image: "{{ bb_monitor_docker_image }}"
     user: 1000:1000
     privileged: no
     network_mode: host
     restart_policy: always
     state: started
     pull: yes
-    command: dd_promstore_exporter --src_topic={{ tsdb_metrics_topic }} --offset_storage=/var/lib/tsdb/import-{{ tsdb_metrics_topic }}.offset
+    command: bb_promstore_exporter --src_topic={{ tsdb_metrics_topic }} --offset_storage=/var/lib/tsdb/import-{{ tsdb_metrics_topic }}.offset
     env: 
       APP_REALM:                "MON"
       SRC_URI:                  "lb.bitbouncer.com:50051"

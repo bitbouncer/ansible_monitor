@@ -1,7 +1,7 @@
 influxdb_docker_image:     influxdb:1.7.3-alpine
 grafana_docker_image:      grafana/grafana:5.4.3
 prometheus_docker_image:   prom/prometheus
-dd_monitor_docker_image:   bitbouncer/monitor:latest
+bb_monitor_docker_image:   bitbouncer/monitor:latest
 
 influxdb_admin_user:       admin
 influxdb_admin_password:   supersecret

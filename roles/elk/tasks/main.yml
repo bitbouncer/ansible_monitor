@@ -1,0 +1,70 @@
+- sysctl: name=vm.max_map_count value=500000
+
+- name: Stop the old containers
+  shell: docker stop {{ item }}
+  ignore_errors: true
+  with_items: 
+    - bb_elk
+  tags:
+     - teardown
+
+- name: remove the containers
+  shell: docker rm {{ item }}
+  ignore_errors: true
+  with_items: 
+    - bb_elk
+  tags:
+     - teardown
+
+- name: create data directory
+  file: path=/var/lib/elasticsearch state=directory mode=0755 owner=1000 group=1000
+  become: true
+  tags:
+     - deploy
+
+- name: start elk container
+  docker_container:
+    name: bb_elk
+    image: "{{ elk_docker_image }}"
+    user: 1000:1000
+    privileged: no
+    restart_policy: always
+    state: started
+    env:
+    volumes: 
+      - /etc/passwd:/etc/passwd:ro
+      - /var/lib/elasticsearch:/var/lib/elasticsearch:rw
+    published_ports:
+      - 5601:5601
+      - 9200:9200
+  tags:
+     - deploy
+
+- name: create offset storage dir
+  file: path=/var/lib/bb state=directory mode=0755 owner=1000 group=1000
+  become: true
+  tags:
+     - deploy
+
+- name: start elasticsearch import container
+  docker_container:
+    name: log_import
+    image: "{{ bb_monitor_docker_image }}"
+    user: 1000:1000
+    privileged: no
+    network_mode: host
+    restart_policy: always
+    state: started
+    pull: yes
+    command: dd_log_exporter --src_topic={{ bb_log_topic }} --offset_storage=/var/lib/bb/import-{{ bb_log_topic }}.offset
+    env: 
+      APP_REALM:   "MON"
+      SRC_URI:     "lb.bitbouncer.com:50051"
+      API_KEY:     "{{ API_KEY }}"
+    volumes: 
+      - /var/lib/bb:/var/lib/bb:rw
+  tags:
+     - deploy
+
+
+
