@@ -49,6 +49,9 @@
   tags:
      - deploy
 
+- name: set influxdb retention (default seems to be 7days)
+  shell: docker exec tsdb_influxdb "influx -execute 'CREATE RETENTION POLICY mypolicy1 ON {{ influxdb_databasename }} DURATION 30d REPLICATION 1 DEFAULT'"
+
 - name: create offset storage dir
   file: path=/var/lib/tsdb state=directory mode=0755 owner=1000 group=1000
   become: true
