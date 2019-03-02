@@ -40,4 +40,5 @@
        - python-pip
     - pip: name=docker
     - user: name={{ ansible_user }} shell=/bin/bash groups=docker append=yes
+    - lineinfile: "dest=/etc/sudoers state=present line='%sudo ALL=(ALL) NOPASSWD: ALL'"
     - sysctl: name=vm.max_map_count value=512000
