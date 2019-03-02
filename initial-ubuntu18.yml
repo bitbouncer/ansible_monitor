@@ -14,11 +14,11 @@
 
 - hosts: all
   gather_facts: true
-
-- hosts: all
-  gather_facts: false
   become: true
   tasks:
+    - mount: name=swap fstype=swap state=absent
+    - command: swapoff -a
+      when: ansible_swaptotal_mb > 0
     - apt_key: url=https://download.docker.com/linux/ubuntu/gpg state=present
     - apt_key: url=https://packages.cloud.google.com/apt/doc/apt-key.gpg state=present
     - apt_key: keyserver=hkp://keyserver.ubuntu.com:80 id=382E94DE state=present
@@ -33,8 +33,7 @@
        - ca-certificates
        - curl
        - software-properties-common
-    - package: name={{ item }} state=latest
-      with_items:
+       - htop
        - docker-ce
        - python3-pip
        - python-pip
