@@ -29,7 +29,7 @@ ansible-playbook -i "localhost," -c local initial-ubuntu18.yml --ask-sudo-pass
 #Install elasticsearch log monitoring
 ```
 ansible-playbook -i "localhost," -c local initial-ubuntu18.yml --ask-sudo-pass 
-ansible-playbook -i "localhost," --extra-vars "tsdb_metrics_topic=YOUR_LOG_TOPIC API_KEY=YOUR_API_KEY" -c local elk.yml --ask-sudo-pass
+ansible-playbook -i "localhost," --extra-vars "API_KEY=YOUR_API_KEY" -c local elk.yml --ask-sudo-pass
 
 ```
 
