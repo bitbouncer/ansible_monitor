@@ -65,10 +65,10 @@
     restart_policy: always
     state: started
     pull: yes
-    command: bb_promstore_exporter --src_topic={{ tsdb_metrics_topic }} --offset_storage=/var/lib/tsdb/import-{{ tsdb_metrics_topic }}.offset
+    command: bb_promstore_exporter --offset_storage=/var/lib/tsdb/import-metrics.offset
     env: 
       APP_REALM:                "MON"
-      SRC_URI:                  "lb.bitbouncer.com:50051"
+      SRC_URI:                  "lb.bitbouncer.com:10063"
       API_KEY:                  "{{ API_KEY }}"
       DST_URI:                  "http://127.0.0.1:8086/api/v1/prom/write"
       DB_DATABASE:              "{{ influxdb_databasename }}"
