@@ -1,6 +1,6 @@
-influxdb_docker_image:     influxdb:1.7.3-alpine
-grafana_docker_image:      grafana/grafana:5.4.3
-prometheus_docker_image:   prom/prometheus
+influxdb_docker_image:     influxdb:1.7.6-alpine
+grafana_docker_image:      grafana/grafana:6.1.6
+prometheus_docker_image:   prom/prometheus:v2.9.2
 bb_monitor_docker_image:   bitbouncer/monitor:latest
 
 influxdb_admin_user:       admin
