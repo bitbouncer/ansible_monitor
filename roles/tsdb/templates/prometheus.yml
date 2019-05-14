@@ -5,6 +5,7 @@ remote_write:
 # Remote read configuration (for InfluxDB only at the moment).
 remote_read:
   - url: "http://127.0.0.1:8086/api/v1/prom/read?db={{ influxdb_databasename }}&u={{ influxdb_user }}&p={{ influxdb_user_password }}"
+    read_recent: true
 
 # my global config
 global:
@@ -18,11 +19,6 @@ alerting:
   - static_configs:
     - targets:
       # - alertmanager:9093
-
-# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
-#rule_files:
-#  - "first_rule.yml"
-#  # - "second_rules.yml"
 
 rule_files:
 {% for f in alert_rule_files.files %}
