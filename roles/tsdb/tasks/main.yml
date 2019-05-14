@@ -1,3 +1,56 @@
+- name: create /etc/prometheus directory
+  file: path=/etc/prometheus state=directory mode=0755
+  become: true
+  tags:
+     - deploy
+
+- name: create /etc/prometheus/rules directory
+  file: path=/etc/prometheus/rules state=directory mode=0755
+  become: true
+  tags:
+     - deploy
+
+- name: import alerting rules
+  unarchive: src="{{ ALERT_RULES_URL }}" dest=/etc/prometheus/rules mode=755 remote_src=yes
+  tags:
+     - deploy
+  when: ALERT_RULES_URL|default("") != ""
+
+- name: get names of rule files
+  find: paths=/etc/prometheus/rules patterns="*.yml" recurse=yes 
+  tags:
+     - deploy
+  register: alert_rule_files
+
+- name: create prometheus config file
+  template: src=prometheus.yml dest=/etc/prometheus/prometheus.yml mode=755
+  tags:
+     - deploy
+
+- name: create prometheus data directory
+  file: path=/var/lib/prometheus state=directory mode=0755 owner=1000 group=1000
+  become: true
+  tags:
+     - deploy
+
+- name: create data directory
+  file: path=/var/lib/influxdb state=directory mode=0755 owner=1000 group=1000
+  become: true
+  tags:
+     - deploy
+
+- name: create offset storage dir
+  file: path=/var/lib/tsdb state=directory mode=0755 owner=1000 group=1000
+  become: true
+  tags:
+     - deploy
+
+- name: create /var/lib/grafana directory
+  file: path=/var/lib/grafana state=directory mode=0755 owner=1000 group=1000
+  become: true
+  tags:
+     - deploy
+
 - name: Stop the old containers
   shell: docker stop {{ item }}
   ignore_errors: true
@@ -20,11 +73,6 @@
   tags:
      - teardown
 
-- name: create data directory
-  file: path=/var/lib/influxdb state=directory mode=0755 owner=1000 group=1000
-  become: true
-  tags:
-     - deploy
 
 - name: start influxdb container
   docker_container:
@@ -46,12 +94,6 @@
       - /var/lib/influxdb:/var/lib/influxdb:rw
     published_ports:
       - 8086:8086
-  tags:
-     - deploy
-
-- name: create offset storage dir
-  file: path=/var/lib/tsdb state=directory mode=0755 owner=1000 group=1000
-  become: true
   tags:
      - deploy
 
@@ -78,30 +120,7 @@
       - /var/lib/tsdb:/var/lib/tsdb:rw
   tags:
      - deploy
-
-- name: create /etc/prometheus directory
-  file: path=/etc/prometheus state=directory mode=0755
-  become: true
-  tags:
-     - deploy
-
-- name: create prometheus config file
-  template: src=prometheus.yml dest=/etc/prometheus/prometheus.yml mode=755
-  tags:
-     - deploy
-
-- name: import alerting rules
-  copy: src={{ role_path }}/files/{{ item }} dest=/etc/prometheus/{{ item }} mode=755
-  with_items: 
-    - first_rule.yml
-  tags:
-     - deploy
-
-- name: create prometheus data directory
-  file: path=/var/lib/prometheus state=directory mode=0755 owner=1000 group=1000
-  become: true
-  tags:
-     - deploy
+  when: API_KEY|default("") != ""
 
 - name: start prometheus container
   docker_container:
@@ -119,12 +138,6 @@
       - /var/lib/prometheus:/var/lib/prometheus:rw
     published_ports:
       - 9090:9090
-  tags:
-     - deploy
-
-- name: create /var/lib/grafana directory
-  file: path=/var/lib/grafana state=directory mode=0755 owner=1000 group=1000
-  become: true
   tags:
      - deploy
 
@@ -152,11 +165,15 @@
     url: http://127.0.0.1:3000
     method: GET
     status_code: 200
+  tags:
+     - deploy
 
-- name: install plugins
-  shell: docker exec tsdb_grafana grafana-cli plugins install {{ item }}
-  with_items:
-   - vonage-status-panel
+#- name: install plugins
+#  shell: docker exec tsdb_grafana grafana-cli plugins install {{ item }}
+#  with_items:
+#   - vonage-status-panel
+#  tags:
+#     - deploy
 
 - name: Create influxdb datasource
   grafana_datasource:
@@ -169,7 +186,8 @@
     url: "http://localhost:8086"
     database: "{{ influxdb_databasename }}"
     time_interval: ">10s"
-    
+  tags:
+     - deploy
 
 - name: Create prometheus datasource
   grafana_datasource:
@@ -180,10 +198,13 @@
     org_id: "1"
     ds_type: "prometheus"
     url: "http://localhost:9090"
+  tags:
+     - deploy
 
 - name: set influxdb retention (default seems to be 7days)
   shell: docker exec tsdb_influxdb influx -execute "CREATE RETENTION POLICY mypolicy1 ON {{ influxdb_databasename }} DURATION 30d REPLICATION 1 DEFAULT"
-
+  tags:
+     - deploy
 
 #- name: Import Grafana dashboard foo
 #  grafana_dashboard:

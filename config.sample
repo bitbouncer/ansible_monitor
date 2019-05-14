@@ -1,1 +1,2 @@
 API_KEY=1234567890
+ALERT_RULES_URL=https://github.com/bitbouncer/monitor_alertrules_sample/archive/master.zip
