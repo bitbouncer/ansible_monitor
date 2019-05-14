@@ -16,10 +16,10 @@
      - deploy
 
 - name: import alerting rules
-  unarchive: src="{{ ALERT_RULES_URL }}" dest=/etc/prometheus/rules mode=755 remote_src=yes
+  unarchive: src="{{ alert_rules_url }}" dest=/etc/prometheus/rules mode=755 remote_src=yes
   tags:
      - deploy
-  when: ALERT_RULES_URL|default("") != ""
+  when: alert_rules_url|default("") != ""
 
 - name: get names of rule files
   find: paths=/etc/prometheus/rules patterns="*.yml" recurse=yes 
