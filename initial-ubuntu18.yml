@@ -37,6 +37,7 @@
        - docker-ce
        - python3-pip
        - python-pip
+       - unzip
     - pip: name=docker
     - user: name={{ ansible_user }} shell=/bin/bash groups=docker append=yes
     - lineinfile: "dest=/etc/sudoers state=present line='%sudo ALL=(ALL) NOPASSWD: ALL'"

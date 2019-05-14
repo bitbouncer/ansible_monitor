@@ -14,6 +14,7 @@ grafana_root_url:          http://{{ hostvars[inventory_hostname]['ansible_defau
 grafana_admin_password:    monitor
 
 
-
-
+grpc_kafka_proxy_uri:      lb.bitbouncer.com:10063
+bb_api_key:                ""
+alert_rules_url:           ""
 

@@ -1,3 +1,8 @@
+- name: Ensure unzip is installed.
+  package: name=unzip state=present
+  tags:
+     - deploy
+
 - name: create /etc/prometheus directory
   file: path=/etc/prometheus state=directory mode=0755
   become: true
@@ -109,9 +114,9 @@
     pull: yes
     command: bb_promstore_exporter --offset_storage=/var/lib/tsdb/import-metrics.offset
     env: 
-      APP_REALM:                "MON"
-      SRC_URI:                  "lb.bitbouncer.com:10063"
-      API_KEY:                  "{{ API_KEY }}"
+      APP_REALM:                "PROD"
+      SRC_URI:                  "{{ grpc_kafka_proxy_uri }}"
+      API_KEY:                  "{{ bb_api_key }}"
       DST_URI:                  "http://127.0.0.1:8086/api/v1/prom/write"
       DB_DATABASE:              "{{ influxdb_databasename }}"
       DB_USER:                  "{{ influxdb_user }}"
@@ -120,7 +125,7 @@
       - /var/lib/tsdb:/var/lib/tsdb:rw
   tags:
      - deploy
-  when: API_KEY|default("") != ""
+  when: bb_api_key|default("") != ""
 
 - name: start prometheus container
   docker_container:
