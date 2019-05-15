@@ -32,18 +32,6 @@
     mode: 0755
   when: alertconfig_url|default("") != ""
 
-#- name: import alerting rules
-#  unarchive: src="{{ alertconfig_url }}" dest=/tmp/alert_config.zip mode=755 remote_src=yes
-#  tags:
-#     - deploy
-#  when: alertconfig_url|default("") != ""
-
-#- name: import alerting rules
-#  unarchive: src="{{ alertconfig_url }}" dest=/etc/prometheus/alertconfig mode=755 remote_src=yes
-#  tags:
-#     - deploy
-#  when: alertconfig_url|default("") != ""
-
 - name: import alerting rules
   unarchive: src=/tmp/alertconfig.zip dest=/etc/prometheus/alertconfig mode=755
   tags:
