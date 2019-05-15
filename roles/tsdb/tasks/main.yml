@@ -39,11 +39,6 @@
      - deploy
   register: alertmanager_config_file
 
-- name : xxx
-  debug: 
-    msg: "first {{ alertmanager_config_file.files[0].path }}"
-  when:  alertmanager_config_file | length > 0 
-
 - name: create prometheus config file
   template: src=prometheus.yml dest=/etc/prometheus/prometheus.yml mode=755
   tags:
@@ -60,12 +55,6 @@
   become: true
   tags:
      - deploy
-
-#- name: create alertmanager data directory
-#  file: path=/var/lib/alertmanager/data state=directory mode=0755 owner=1000 group=1000
-#  become: true
-#  tags:
-#     - deploy
 
 - name: create data directory
   file: path=/var/lib/influxdb state=directory mode=0755 owner=1000 group=1000
@@ -195,7 +184,7 @@
       - 9093:9093
   tags:
      - deploy
-  when:  alertmanager_config_file | length > 0 
+  when:  alertmanager_config_file.files | length > 0 
 
 - name: start grafana container
   docker_container:
