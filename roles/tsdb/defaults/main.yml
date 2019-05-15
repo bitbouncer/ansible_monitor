@@ -17,5 +17,8 @@ grafana_admin_password:    monitor
 
 grpc_kafka_proxy_uri:      lb.bitbouncer.com:10063
 bb_api_key:                ""
-alert_rules_url:           ""
+
+alertconfig_url:           ""
+alertconfig_user:          ""
+alertconfig_password:      ""
 
