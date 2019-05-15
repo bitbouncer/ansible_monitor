@@ -33,11 +33,16 @@
      - deploy
   register: alertrules_dir
 
-- name: find alertmanager dir
-  find: paths=/etc/prometheus/alertconfig patterns="alertmanager" recurse=yes file_type=directory
+- name: find alertmanager config file
+  find: paths=/etc/prometheus/alertconfig patterns="alertmanager.yml" recurse=yes
   tags:
      - deploy
-  register: alertmanager_dir
+  register: alertmanager_config_file
+
+- name : xxx
+  debug: 
+    msg: "first {{ alertmanager_config_file.files[0].path }}"
+  when:  alertmanager_config_file | length > 0 
 
 - name: create prometheus config file
   template: src=prometheus.yml dest=/etc/prometheus/prometheus.yml mode=755
@@ -49,6 +54,18 @@
   become: true
   tags:
      - deploy
+
+- name: create alertmanager data directory
+  file: path=/var/lib/alertmanager state=directory mode=0755 owner=1000 group=1000
+  become: true
+  tags:
+     - deploy
+
+#- name: create alertmanager data directory
+#  file: path=/var/lib/alertmanager/data state=directory mode=0755 owner=1000 group=1000
+#  become: true
+#  tags:
+#     - deploy
 
 - name: create data directory
   file: path=/var/lib/influxdb state=directory mode=0755 owner=1000 group=1000
@@ -75,6 +92,7 @@
     - tsdb_metrics_import
     - tsdb_grafana
     - tsdb_prometheus
+    - tsdb_alertmanager
     - tsdb_influxdb
   tags:
      - teardown
@@ -86,6 +104,7 @@
     - tsdb_metrics_import
     - tsdb_grafana
     - tsdb_prometheus
+    - tsdb_alertmanager
     - tsdb_influxdb
   tags:
      - teardown
@@ -157,6 +176,26 @@
       - 9090:9090
   tags:
      - deploy
+
+- name: start prometheus alert manager container
+  docker_container:
+    name: tsdb_alertmanager
+    image: "{{ alertmanager_docker_image }}"
+    user: 1000:1000
+    privileged: no
+    network_mode: host    
+    restart_policy: always
+    state: started
+    command: '--config.file={{ alertmanager_config_file.files[0].path }} --storage.path=/var/lib/alertmanager'
+    volumes: 
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/prometheus:/etc/prometheus:ro
+      - /var/lib/alertmanager:/var/lib/alertmanager:rw
+    published_ports:
+      - 9093:9093
+  tags:
+     - deploy
+  when:  alertmanager_config_file | length > 0 
 
 - name: start grafana container
   docker_container:
