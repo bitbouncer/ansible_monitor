@@ -15,6 +15,12 @@
   tags:
      - deploy
 
+- name: delete old /etc/prometheus/alertconfig directory
+  file: path=/etc/prometheus/alertconfig state=absent
+  become: true
+  tags:
+     - deploy
+
 - name: create /etc/prometheus/alertconfig directory
   file: path=/etc/prometheus/alertconfig state=directory mode=0755
   become: true
@@ -33,7 +39,7 @@
   when: alertconfig_url|default("") != ""
 
 - name: import alerting rules
-  unarchive: src=/tmp/alertconfig.zip dest=/etc/prometheus/alertconfig mode=755
+  unarchive: src=/tmp/alertconfig.zip dest=/etc/prometheus/alertconfig mode=755 remote_src=true
   tags:
      - deploy
   when: alertconfig_url|default("") != ""
