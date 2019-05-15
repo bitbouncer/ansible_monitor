@@ -3,29 +3,41 @@
   tags:
      - deploy
 
+- name: delete old /etc/prometheus/rules directory
+  file: path=/etc/prometheus/rules state=absent
+  become: true
+  tags:
+     - deploy
+
 - name: create /etc/prometheus directory
   file: path=/etc/prometheus state=directory mode=0755
   become: true
   tags:
      - deploy
 
-- name: create /etc/prometheus/rules directory
-  file: path=/etc/prometheus/rules state=directory mode=0755
+- name: create /etc/prometheus/alertconfig directory
+  file: path=/etc/prometheus/alertconfig state=directory mode=0755
   become: true
   tags:
      - deploy
 
 - name: import alerting rules
-  unarchive: src="{{ alert_rules_url }}" dest=/etc/prometheus/rules mode=755 remote_src=yes
+  unarchive: src="{{ alertconfig_url }}" dest=/etc/prometheus/alertconfig mode=755 remote_src=yes
   tags:
      - deploy
-  when: alert_rules_url|default("") != ""
+  when: alertconfig_url|default("") != ""
 
-- name: get names of rule files
-  find: paths=/etc/prometheus/rules patterns="*.yml" recurse=yes 
+- name: get alertrules dir
+  find: paths=/etc/prometheus/alertconfig patterns="alertrules" recurse=yes file_type=directory
   tags:
      - deploy
-  register: alert_rule_files
+  register: alertrules_dir
+
+- name: find alertmanager dir
+  find: paths=/etc/prometheus/alertconfig patterns="alertmanager" recurse=yes file_type=directory
+  tags:
+     - deploy
+  register: alertmanager_dir
 
 - name: create prometheus config file
   template: src=prometheus.yml dest=/etc/prometheus/prometheus.yml mode=755
