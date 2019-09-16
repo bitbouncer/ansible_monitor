@@ -1,4 +1,5 @@
 API_KEY=1234567890
+SECRET_ACCESS_KEY=something
 
 #must be a .zip file
 ALERTCONFIG_URL=https://github.com/bitbouncer/monitor_alertrules_sample/archive/master.zip

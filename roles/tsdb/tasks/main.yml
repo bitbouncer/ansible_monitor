@@ -149,20 +149,17 @@
     restart_policy: always
     state: started
     pull: yes
-    command: bb_promstore_exporter --offset_storage=/var/lib/tsdb/import-metrics.offset
+    command: bb_promstore_exporter3 --offset_storage=/var/lib/tsdb/import-metrics.offset
     env: 
-      APP_REALM:                "PROD"
-      SRC_URI:                  "{{ grpc_kafka_proxy_uri }}"
-      API_KEY:                  "{{ bb_api_key }}"
-      DST_URI:                  "http://127.0.0.1:8086/api/v1/prom/write"
-      DB_DATABASE:              "{{ influxdb_databasename }}"
-      DB_USER:                  "{{ influxdb_user }}"
-      DB_PASSWORD:              "{{ influxdb_user_password }}"
+      APP_REALM:                 "PROD"
+      MONITOR_API_KEY:           "{{ monitor_read_api_key }}"
+      MONITOR_SECRET_ACCESS_KEY: "{{ monitor_read_secret_api_key }}"
+      REMOTE_WRITE_URI:          "http://127.0.0.1:8086/api/v1/prom/write?db={{ influxdb_databasename }}&u={{ influxdb_user }}&p={{ influxdb_user_password }}"      
     volumes: 
       - /var/lib/tsdb:/var/lib/tsdb:rw
   tags:
      - deploy
-  when: bb_api_key|default("") != ""
+  when: monitor_read_api_key|default("") != ""
 
 - name: start prometheus container
   docker_container:
@@ -229,6 +226,13 @@
     status_code: 200
   tags:
      - deploy
+
+#- name: install plugins
+#  shell: docker exec tsdb_grafana grafana-cli plugins install {{ item }}
+#  with_items:
+#   - camptocamp-prometheus-alertmanager-datasource
+#  tags:
+#     - deploy
 
 #- name: install plugins
 #  shell: docker exec tsdb_grafana grafana-cli plugins install {{ item }}
