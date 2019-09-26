@@ -1,44 +1,18 @@
+- set_fact: target_address={{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}
+
 - sysctl: name=vm.max_map_count value=500000
 
-- name: Stop the old containers
-  shell: docker stop {{ item }}
-  ignore_errors: true
-  with_items: 
-    - bb_elk
-  tags:
-     - teardown
+- name: add group elasticsearch
+  group: name=elasticsearch gid=991 state=present
 
-- name: remove the containers
-  shell: docker rm {{ item }}
-  ignore_errors: true
-  with_items: 
-    - bb_elk
-  tags:
-     - teardown
+- name: add user elasticsearch
+  user: name=elasticsearch uid=991 group=elasticsearch
 
-- name: create data directory
-  file: path=/var/lib/elasticsearch state=directory mode=0755 owner=1000 group=1000
-  become: true
-  tags:
-     - deploy
+- name: add group kibana
+  group: name=kibana gid=993 state=present
 
-- name: start elk container
-  docker_container:
-    name: bb_elk
-    image: "{{ elk_docker_image }}"
-    user: 1000:1000
-    privileged: no
-    restart_policy: always
-    state: started
-    env:
-    volumes: 
-      - /etc/passwd:/etc/passwd:ro
-      - /var/lib/elasticsearch:/var/lib/elasticsearch:rw
-    published_ports:
-      - 5601:5601
-      - 9200:9200
-  tags:
-     - deploy
+- name: add user kibana
+  user: name=kibana uid=993 group=kibana
 
 - name: create offset storage dir
   file: path=/var/lib/bb state=directory mode=0755 owner=1000 group=1000
@@ -46,9 +20,85 @@
   tags:
      - deploy
 
-- name: start elasticsearch import container
+- name: remove the containers
+  shell: docker rm -f {{ item }}
+  ignore_errors: true
+  with_items: 
+     - bb-log2es
+     - bb-elk
+  tags:
+     - teardown
+
+- name: create data directory
+  file: path={{ elk_data_dir }} state=directory mode=0755 owner=991 group=991
+  become: true
+  tags:
+     - deploy
+
+- name: start elk container
   docker_container:
-    name: log_import
+    name: bb-elk
+    image: "{{ elk_docker_image }}"
+#    user: 991:991
+    privileged: no
+    restart_policy: always
+    state: started
+    env:
+    volumes: 
+      - /etc/passwd:/etc/passwd:ro
+      - "{{ elk_data_dir }}:/var/lib/elasticsearch:rw"
+    published_ports:
+      - 5601:5601
+      - 9200:9200
+  tags:
+     - deploy
+
+- name: Wait for port 9200 to become open on the host, don't start checking for 10 seconds
+  wait_for:
+    port: 9200
+    delay: 10
+
+- name: "Check if elastic search is accessible."
+  uri:
+    url: "http://{{ target_address }}:9200"
+    method: GET
+    status_code: 200
+  tags:
+     - teardown
+     - deploy
+
+#- name: drop old index
+#  uri:
+#    url: "http://{{ target_address }}:9200/{{ es_index_name }}/?pretty=true"
+#    method: DELETE
+#    status_code: 200, 404
+#    body_format: json
+#  tags:
+#     - teardown
+#- pause: seconds=5
+
+- name: check the {{ es_index_name }} index
+  uri: url="http://{{ target_address }}:9200/{{ es_index_name }}/?pretty=true"
+  register: response
+  ignore_errors: yes
+
+- name: create {{ es_index_name }} index
+  uri:
+    url: "http://{{ target_address }}:9200/{{ es_index_name }}/?pretty=true"
+    method: PUT
+    body: "{{ lookup('file','logs_mapping.json') }}"
+    status_code: 200
+    body_format: json
+  when: response.status != 200
+  tags:
+     - deploy
+
+
+#delete offset on teardown
+
+- name: start {{ es_index_name }} elasticsearch import container
+  docker_container:
+    name: bb-log2es
     image: "{{ bb_monitor_docker_image }}"
     user: 1000:1000
     privileged: no
@@ -56,15 +106,22 @@
     restart_policy: always
     state: started
     pull: yes
-    command: dd_log_exporter --src_topic={{ bb_log_topic }} --offset_storage=/var/lib/bb/import-{{ bb_log_topic }}.offset
+    log_driver: json-file
+    command: bb-es-log-exporter3
     env: 
-      APP_REALM:   "MON"
-      SRC_URI:     "lb.bitbouncer.com:50051"
-      API_KEY:     "{{ API_KEY }}"
+      APP_REALM:                  PROD
+      KAFKA_PROXY_URI:            "{{ kafka_proxy_uri }}"
+      MONITOR_API_KEY:            "{{ monitor_read_api_key }}"
+      MONITOR_SECRET_ACCESS_KEY:  "{{ monitor_read_secret_api_key }}"
+      REMOTE_WRITE_URI:           http://{{ target_address }}:9200/{{ es_index_name }}/_doc
+      HTTP_MAX_CALLS:             "50"
+      OFFSET_STORAGE:             /var/lib/bb/{{ es_index_name }}-log2es.offset
+      START_OFFSET:               OFFSET_STORED
     volumes: 
       - /var/lib/bb:/var/lib/bb:rw
   tags:
      - deploy
+
 
 
 

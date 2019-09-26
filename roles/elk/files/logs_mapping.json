@@ -1,0 +1,11 @@
+{
+  "mappings": {
+    "properties": {
+      "timestamp": { "type": "date", "format": "epoch_millis" },  
+      "host":      { "type": "keyword"  },
+      "source":    { "type": "keyword"  },
+      "tag":       { "type": "text"  },
+      "line":      { "type": "text"  }
+    }
+  }
+}
